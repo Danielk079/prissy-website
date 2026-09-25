@@ -3,6 +3,46 @@
 
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // ---- Background song (YouTube), loaded quietly, played on the tap-to-open gate ----
+  var YT_VIDEO_ID = 'WNlXR6llLew';
+  var ytPlayer = null;
+
+  var ytScriptTag = document.createElement('script');
+  ytScriptTag.src = 'https://www.youtube.com/iframe_api';
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(ytScriptTag, firstScriptTag);
+
+  window.onYouTubeIframeAPIReady = function () {
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '90',
+      width: '160',
+      videoId: YT_VIDEO_ID,
+      playerVars: {
+        autoplay: 0,
+        loop: 1,
+        playlist: YT_VIDEO_ID,
+        rel: 0,
+        modestbranding: 1
+      },
+      events: {
+        onError: function (e) {
+          console.warn('Background song failed to load (YouTube error code ' + e.data + ')');
+        }
+      }
+    });
+  };
+
+  // ---- Tap-to-open gate: reveals the site and starts the song together ----
+  var gate = document.getElementById('gate');
+  gate.addEventListener('click', function () {
+    gate.classList.add('opened');
+    document.body.classList.add('site-opened');
+    document.getElementById('musicPlayer').removeAttribute('aria-hidden');
+    if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+      ytPlayer.playVideo();
+    }
+  }, { once: true });
+
   // Show the placeholder if the real photo hasn't been added yet
   var photoFrame = document.getElementById('photoFrame');
   var photoImg = document.getElementById('photoImg');
