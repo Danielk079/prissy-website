@@ -6,6 +6,8 @@
   // ---- Background song (YouTube), loaded quietly, played on the tap-to-open gate ----
   var YT_VIDEO_ID = 'WNlXR6llLew';
   var ytPlayer = null;
+  var ytPlayerReady = false;
+  var wantsToPlay = false;
 
   var ytScriptTag = document.createElement('script');
   ytScriptTag.src = 'https://www.youtube.com/iframe_api';
@@ -25,6 +27,15 @@
         modestbranding: 1
       },
       events: {
+        onReady: function () {
+          ytPlayerReady = true;
+          // On a slow connection (common on mobile), the tap can happen
+          // before the player finishes loading. If that happened, honor
+          // it now instead of leaving the song silently un-started.
+          if (wantsToPlay) {
+            ytPlayer.playVideo();
+          }
+        },
         onError: function (e) {
           console.warn('Background song failed to load (YouTube error code ' + e.data + ')');
         }
@@ -38,7 +49,8 @@
     gate.classList.add('opened');
     document.body.classList.add('site-opened');
     document.getElementById('musicPlayer').removeAttribute('aria-hidden');
-    if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+    wantsToPlay = true;
+    if (ytPlayerReady && ytPlayer && typeof ytPlayer.playVideo === 'function') {
       ytPlayer.playVideo();
     }
   }, { once: true });
